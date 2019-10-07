@@ -1,5 +1,5 @@
 import os
-os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"   
+os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
 #os.environ["CUDA_VISIBLE_DEVICES"]='0,1,2,3'
 import sys
 import argparse
@@ -42,12 +42,12 @@ def run(init_lr=0.1, max_steps=64e3, mode='rgb', root='/ssd/Charades_v1_rgb', tr
     dataloader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=36, pin_memory=True)
 
     val_dataset = Dataset(train_split, 'testing', root, mode, test_transforms)
-    val_dataloader = torch.utils.data.DataLoader(val_dataset, batch_size=batch_size, shuffle=True, num_workers=36, pin_memory=True)    
+    val_dataloader = torch.utils.data.DataLoader(val_dataset, batch_size=batch_size, shuffle=True, num_workers=36, pin_memory=True)
 
     dataloaders = {'train': dataloader, 'val': val_dataloader}
     datasets = {'train': dataset, 'val': val_dataset}
 
-    
+
     # setup the model
     if mode == 'flow':
         i3d = InceptionI3d(400, in_channels=2)
@@ -78,13 +78,13 @@ def run(init_lr=0.1, max_steps=64e3, mode='rgb', root='/ssd/Charades_v1_rgb', tr
                 i3d.train(True)
             else:
                 i3d.train(False)  # Set model to evaluate mode
-                
+
             tot_loss = 0.0
             tot_loc_loss = 0.0
             tot_cls_loss = 0.0
             num_iter = 0
             optimizer.zero_grad()
-            
+
             # Iterate over data.
             for data in dataloaders[phase]:
                 num_iter += 1
@@ -124,8 +124,8 @@ def run(init_lr=0.1, max_steps=64e3, mode='rgb', root='/ssd/Charades_v1_rgb', tr
                         torch.save(i3d.module.state_dict(), save_model+str(steps).zfill(6)+'.pt')
                         tot_loss = tot_loc_loss = tot_cls_loss = 0.
             if phase == 'val':
-                print '{} Loc Loss: {:.4f} Cls Loss: {:.4f} Tot Loss: {:.4f}'.format(phase, tot_loc_loss/num_iter, tot_cls_loss/num_iter, (tot_loss*num_steps_per_update)/num_iter) 
-    
+                print '{} Loc Loss: {:.4f} Cls Loss: {:.4f} Tot Loss: {:.4f}'.format(phase, tot_loc_loss/num_iter, tot_cls_loss/num_iter, (tot_loss*num_steps_per_update)/num_iter)
+
 
 
 if __name__ == '__main__':

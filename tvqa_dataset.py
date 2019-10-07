@@ -6,7 +6,7 @@ import numpy as np
 import json
 import csv
 import h5py
-
+import random
 import os
 import os.path
 
@@ -74,6 +74,9 @@ def make_dataset(split_file, split, root, mode, num_classes=157):
         if mode == 'flow':
             num_frames = num_frames//2
 
+        if num_frames < 66:
+            continue
+
         label = np.zeros((num_classes,num_frames), np.float32)
 
         fps = num_frames/data[vid]['duration']
@@ -89,14 +92,13 @@ def make_dataset(split_file, split, root, mode, num_classes=157):
 
 class Charades(data_utl.Dataset):
 
-    def __init__(self, split_file, split, root, mode, transforms=None, save_dir='', num=0):
+    def __init__(self, split_file, split, root, mode, transforms=None):
 
         self.data = make_dataset(split_file, split, root, mode)
         self.split_file = split_file
         self.transforms = transforms
         self.mode = mode
         self.root = root
-        self.save_dir = save_dir
 
     def __getitem__(self, index):
         """
@@ -107,17 +109,17 @@ class Charades(data_utl.Dataset):
             tuple: (image, target) where target is class_index of the target class.
         """
         vid, label, dur, nf = self.data[index]
-        if os.path.exists(os.path.join(self.save_dir, vid+'.npy')):
-            return 0, 0, vid
+        start_f = random.randint(1,nf-65)
 
         if self.mode == 'rgb':
-            imgs = load_rgb_frames(self.root, vid, 1, nf)
+            imgs = load_rgb_frames(self.root, vid, start_f, 64)
         else:
-            imgs = load_flow_frames(self.root, vid, 1, nf)
+            imgs = load_flow_frames(self.root, vid, start_f, 64)
+        label = label[:, start_f:start_f+64]
 
         imgs = self.transforms(imgs)
 
-        return video_to_tensor(imgs), torch.from_numpy(label), vid
+        return video_to_tensor(imgs), torch.from_numpy(label)
 
     def __len__(self):
         return len(self.data)
